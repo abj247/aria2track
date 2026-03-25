@@ -1,0 +1,11 @@
+name: aria2mesh
+channels:
+  - conda-forge
+  - pip
+dependencies:
+  - python=3.11
+  - pip
+  - git
+  - pre-commit
+  - pip:
+    

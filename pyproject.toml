@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "template"
+version = "0.1.0"
+description = "Template for Python projects"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+dependencies = [
+    # List dependencies
+]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit",
+    "ipykernel",
+]
+
+[tool.setuptools]
+packages = ["template"]
+
+[tool.setuptools.package-dir]
+template = "src"
+
+[tool.setuptools.package-data]
+template = ["py.typed"]
+
