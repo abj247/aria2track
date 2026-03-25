@@ -1,0 +1,6 @@
+[submodule "external/aria2mano"]
+	path = external/aria2mano
+	url = https://github.com/KevinyWu/aria2mano
+[submodule "external/MV-SAM3D"]
+	path = external/MV-SAM3D
+	url = git@github.com:KevinyWu-Archive/MV-SAM3D.git
