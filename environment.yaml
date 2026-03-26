@@ -8,4 +8,4 @@ dependencies:
   - git
   - pre-commit
   - pip:
-    
+    - "huggingface-hub[cli]<1.0"

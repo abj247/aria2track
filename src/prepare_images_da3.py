@@ -43,12 +43,14 @@ def main(
 ) -> None:
     """Prepare images + DA3 data for MV-SAM3D from GT cameras/depth."""
     input_dir = Path(aria_path) / "processed"
+    aria2mesh_dir = Path(aria_path) / "aria2mesh"
     if object_name is None:
         object_name = Path(aria_path).name
+    inputs_dir = aria2mesh_dir / "inputs"
     if output is None:
-        output = f"data/{object_name}"
+        output = str(inputs_dir)
     if da3_output is None:
-        da3_output = f"da3_outputs/{object_name}/da3_output.npz"
+        da3_output = str(inputs_dir / "da3_output.npz")
     output_dir = Path(output)
 
     # Frame selection

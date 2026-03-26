@@ -7,6 +7,7 @@ the global point cloud is already in world frame.
 
 import time
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
 import trimesh
@@ -79,16 +80,94 @@ def transform_trimesh(mesh, T):
     return mesh
 
 
+def visualize_glb(glb_path: Path, port: int = 8080) -> None:
+    """Simple GLB/scene viewer."""
+    scene = trimesh.load(str(glb_path))
+    server = viser.ViserServer(host="0.0.0.0", port=port)
+    server.gui.configure_theme(dark_mode=True)
+    server.scene.set_up_direction("+z")
+
+    if isinstance(scene, trimesh.Scene):
+        for name, geom in scene.geometry.items():
+            if isinstance(geom, trimesh.Trimesh):
+                server.scene.add_mesh_trimesh(f"mesh/{name}", geom)
+                print(
+                    f"  Mesh '{name}': {geom.vertices.shape[0]} verts, {geom.faces.shape[0]} faces"
+                )
+            elif isinstance(geom, trimesh.PointCloud):
+                pts = np.array(geom.vertices, dtype=np.float32)
+                cols = (
+                    np.array(geom.colors[:, :3], dtype=np.uint8)
+                    if geom.colors is not None
+                    else np.full((len(pts), 3), 180, dtype=np.uint8)
+                )
+                server.scene.add_point_cloud(
+                    f"pc/{name}",
+                    points=pts,
+                    colors=cols,
+                    point_size=0.003,
+                    point_shape="rounded",
+                )
+                print(f"  PointCloud '{name}': {len(pts)} points")
+            else:
+                print(f"  Skipped '{name}': {type(geom).__name__}")
+    else:
+        server.scene.add_mesh_trimesh("mesh", scene)
+        print(
+            f"Loaded: {scene.vertices.shape[0]} vertices, {scene.faces.shape[0]} faces"
+        )
+
+    print(f"\nOpen in browser: http://localhost:{port}")
+    while True:
+        time.sleep(1.0)
+
+
+GLB_PREFERENCE = [
+    "result_merged_scene_optimized.glb",
+    "result_merged_scene.glb",
+    "result.glb",
+]
+
+
+def find_best_glb(outputs_dir: Path) -> Optional[Path]:
+    """Find the best GLB file from the outputs directory."""
+    if not outputs_dir.exists():
+        return None
+    for name in GLB_PREFERENCE:
+        glb = outputs_dir / name
+        if glb.exists():
+            return glb
+    return None
+
+
 def main(
-    da3_output: Path,
-    sam3d_output: tuple[Path, ...] = (),
+    aria_path: Path,
+    simple: bool = False,
     no_pose: bool = False,
     port: int = 8080,
     point_size: float = 0.001,
     share: bool = False,
 ) -> None:
-    """Visualize DA3 scene + SAM3D meshes (unoptimized & optimized)."""
-    da3 = np.load(da3_output / "da3_output.npz")
+    """Visualize DA3 scene + SAM3D meshes (unoptimized & optimized).
+
+    Args:
+        aria_path: path to the Aria recording (e.g. data/drill)
+        simple: lightweight GLB viewer using the best output from aria2mesh/outputs/
+    """
+    if simple:
+        outputs_dir = aria_path / "aria2mesh" / "outputs"
+        glb_path = find_best_glb(outputs_dir)
+        if glb_path is None:
+            raise FileNotFoundError(f"No GLB files found in {outputs_dir}")
+        print(f"Viewing {glb_path}")
+        visualize_glb(glb_path, port)
+        return
+
+    aria2mesh_dir = aria_path / "aria2mesh"
+    inputs_dir = aria2mesh_dir / "inputs"
+    outputs_dir = aria2mesh_dir / "outputs"
+
+    da3 = np.load(inputs_dir / "da3_output.npz")
     if "pointmaps" in da3:
         pointmaps = da3["pointmaps"]
     else:
@@ -99,8 +178,7 @@ def main(
     N, H, W, _ = pointmaps.shape
     print(f"DA3: {N} views, {H}x{W}")
 
-    # Load c2w_cam0 to transform cam0-frame -> gravity-aligned world frame
-    c2w_cam0_path = da3_output / "c2w_cam0.npy"
+    c2w_cam0_path = inputs_dir / "c2w_cam0.npy"
     if c2w_cam0_path.exists():
         c2w_cam0 = np.load(c2w_cam0_path).astype(np.float64)
         if c2w_cam0.shape == (3, 4):
@@ -111,6 +189,9 @@ def main(
     else:
         c2w_cam0 = np.eye(4, dtype=np.float64)
         print("WARNING: c2w_cam0.npy not found, assuming cam0 = world")
+
+    # SAM3D output is directly in outputs_dir (single run, overwritten each time)
+    has_sam3d = outputs_dir.exists() and (outputs_dir / "result.glb").exists()
 
     server = viser.ViserServer(host="0.0.0.0", port=port)
     server.gui.configure_theme(dark_mode=True)
@@ -136,9 +217,8 @@ def main(
     frustum_handles = []
     depth_pc_handles = []
 
-    # Global point cloud (from da3 output dir, already in world frame)
     global_pc_handle = None
-    global_pc_path = da3_output / "point_cloud.npz"
+    global_pc_path = inputs_dir / "point_cloud.npz"
     if global_pc_path.exists():
         global_pts = np.load(global_pc_path)["points"]
         colors = np.cos(global_pts + np.arange(3)) / 4.0 + 0.5
@@ -151,7 +231,6 @@ def main(
         )
         print(f"Global PC: {len(global_pts)} points")
 
-    # Per-view depth point clouds + camera frustums
     for i in range(N):
         c2w_cam0_i = w2c_to_c2w(extrinsics[i])
         c2w_world = c2w_cam0 @ c2w_cam0_i
@@ -224,28 +303,24 @@ def main(
     opt_handles = []
     c2w0 = w2c_to_c2w(extrinsics[0])
 
-    for sam3d_dir in sam3d_output:
-        label = sam3d_dir.name
-        glb_path = sam3d_dir / "result.glb"
-        params_path = sam3d_dir / "params.npz"
-        opt_params_path = sam3d_dir / "pose_optimization" / "optimized_params.npz"
-
-        if not glb_path.exists():
-            raise FileNotFoundError(f"result.glb not found in {sam3d_dir}")
+    if has_sam3d:
+        glb_path = outputs_dir / "result.glb"
+        params_path = outputs_dir / "params.npz"
+        opt_params_path = outputs_dir / "pose_optimization" / "optimized_params.npz"
 
         mesh = trimesh.load(str(glb_path), force="mesh")
         print(
-            f"SAM3D mesh [{label}]: {mesh.vertices.shape[0]} verts, {mesh.faces.shape[0]} faces"
+            f"SAM3D mesh: {mesh.vertices.shape[0]} verts, {mesh.faces.shape[0]} faces"
         )
 
         if params_path.exists() and not no_pose:
             params = dict(np.load(params_path))
             unopt_mesh = transform_mesh_to_world(mesh, params, c2w0)
             transform_trimesh(unopt_mesh, c2w_cam0)
-            print(f"  [{label}] Applied original pose -> world frame")
+            print("  Applied original pose -> world frame")
         else:
             unopt_mesh = mesh
-        h = server.scene.add_mesh_trimesh(f"/objects/{label}/mesh", unopt_mesh)
+        h = server.scene.add_mesh_trimesh("/objects/mesh", unopt_mesh)
         h.visible = gui_show_unopt.value
         unopt_handles.append(h)
 
@@ -253,11 +328,9 @@ def main(
             opt_params = dict(np.load(opt_params_path, allow_pickle=True))
             opt_mesh = transform_mesh_to_world(mesh, opt_params)
             transform_trimesh(opt_mesh, c2w_cam0)
-            h = server.scene.add_mesh_trimesh(
-                f"/objects/{label}/mesh_optimized", opt_mesh
-            )
+            h = server.scene.add_mesh_trimesh("/objects/mesh_optimized", opt_mesh)
             opt_handles.append(h)
-            print(f"  [{label}] Added optimized mesh -> world frame")
+            print("  Added optimized mesh -> world frame")
 
     @gui_point_size.on_update
     def _(_):
