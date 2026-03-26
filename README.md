@@ -1,6 +1,6 @@
 # aria2mesh
 
-Metrically accurate 3D object reconstruction from Aria Gen 2 recordings, built on top of [aria2mano](https://github.com/KevinyWu/aria2mano) and [MV-SAM3D](https://github.com/devinli123/MV-SAM3D).
+Metrically accurate 3D object reconstruction from Aria Gen 2 videos, built on of [aria2mano](https://github.com/KevinyWu/aria2mano) and [MV-SAM3D](https://github.com/devinli123/MV-SAM3D).
 
 <p align="center">
   <img src="assets/img/aria2mesh.gif" alt="aria2mesh" />
@@ -37,16 +37,17 @@ SAM3 model weights are downloaded automatically on first use. See the [SAM3 repo
 
 **SAM3D Model**
 
+First, request access from the SAM 3D Objects Hugging Face [repo](https://huggingface.co/facebook/sam-3d-objects). Get authenticated with Hugging Face ([steps](https://huggingface.co/docs/huggingface_hub/en/quick-start#authentication)), then run the following command to download the model weights:
+
 ```bash
-TAG=hf
 hf download \
   --repo-type model \
-  --local-dir checkpoints/${TAG}-download \
+  --local-dir checkpoints-download \
   --max-workers 1 \
   facebook/sam-3d-objects
 mkdir -p external/MV-SAM3D/checkpoints
-mv checkpoints/${TAG}-download/checkpoints external/MV-SAM3D/checkpoints/${TAG}
-rm -rf checkpoints
+mv checkpoints-download/checkpoints external/MV-SAM3D/checkpoints/hf
+rm -rf checkpoints-download
 ```
 
 </details>
@@ -86,20 +87,26 @@ After processing, each recording has this structure. See [aria2mano](https://git
 
 ```text
 recording_name/
-├── video.vrs                    # Original Aria recording
+├── video.vrs                       # Original Aria recording
 ├── vrs_health_check.json
-├── mps_video_vrs/               # Cloud MPS results
-├── on_device/                   # Gen 2 only: on-device results
-├── processed/                   # Output from aria2mano.aria_processor + object masks
+├── mps_video_vrs/                  # Cloud MPS results
+├── on_device/                      # Gen 2 only: on-device results
+├── processed/                      # Output from aria2mano + object masks
 └── aria2mesh/
-    ├── hand_tracking/
-    │   ├── hand_tracking_results.csv
-    │   └── summary.json
-    └── slam/
-        ├── closed_loop_trajectory.csv
-        ├── open_loop_trajectory.csv
-        ├── semidense_observations.csv.gz
-        ├── semidense_points.csv.gz
-        ├── online_calibration.jsonl
-        └── summary.json
+    ├── inputs/                     # MV-SAM3D inputs (from prepare_images_da3)
+    │   ├── images/                 # Multi-view RGB images
+    │   ├── {object_name}/          # Per-view RGBA masks
+    │   ├── da3_output.npz          # Cameras, depth, pointmaps
+    │   ├── c2w_cam0.npy            # First frame camera-to-world transform
+    │   ├── point_cloud.npz         # SLAM semidense point cloud
+    │   └── scene.glb               # Aligned point cloud visualization
+    └── outputs/                    # MV-SAM3D outputs (from run_mvsam3d)
+        ├── result.glb              # Reconstructed mesh (canonical space)
+        ├── result.ply              # Gaussian splat representation
+        ├── params.npz              # SAM3D pose parameters
+        ├── result_merged_scene.glb             # Mesh merged with DA3 scene
+        ├── result_merged_scene_optimized.glb   # Pose-optimized merged scene
+        ├── result_pose_optimized.glb           # Pose-optimized mesh only
+        └── pose_optimization/
+            └── optimized_params.npz            # Optimized pose parameters
 ```
