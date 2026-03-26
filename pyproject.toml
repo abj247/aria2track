@@ -3,14 +3,16 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "template"
+name = "aria2mesh"
 version = "0.1.0"
-description = "Template for Python projects"
+description = "Metrically accurate 3D object reconstruction from Aria Gen 2 recordings"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = "==3.11.*"
 license = {file = "LICENSE"}
 dependencies = [
-    # List dependencies
+    # Visualization and utilities
+    "viser",
+    "tyro",
 ]
 
 [project.optional-dependencies]
@@ -20,11 +22,12 @@ dev = [
 ]
 
 [tool.setuptools]
-packages = ["template"]
+packages = ["aria2mesh", "aria2mesh.utils"]
 
 [tool.setuptools.package-dir]
-template = "src"
+aria2mesh = "src"
+"aria2mesh.utils" = "src/utils"
 
 [tool.setuptools.package-data]
-template = ["py.typed"]
+aria2mesh = ["py.typed"]
 

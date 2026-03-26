@@ -1,10 +1,12 @@
 # aria2mesh
 
+Metrically accurate 3D object reconstruction from Aria Gen 2 recordings, built on top of [aria2mano](https://github.com/KevinyWu/aria2mano).
+
 <p align="center">
   <img src="assets/img/aria2mesh.gif" alt="aria2mesh" />
 </p>
 
-Metrically accurate 3D object reconstruction from Aria Gen 2 recordings, built on top of [aria2mano](https://github.com/KevinyWu/aria2mano).
+> Meshes align with both stereo depth from [S2M2](https://junhong-3dv.github.io/s2m2-project/) and SLAM semidense points from [MPS](https://facebookresearch.github.io/projectaria_tools/gen2/technical-specs/mps/data_formats/slam/data_formats).
 
 ## Quick start
 
@@ -36,6 +38,45 @@ SAM3 model weights are downloaded automatically on first use. See the [SAM3 repo
 </details>
 
 ## Usage
+
+<details><summary><b>1) Prepare Aria Data</b></summary>
+
+```bash
+# 1) Prepare the recording - transforms depth from stereo_left to RGB camera frame and crops/scales images to 512x512
+python -m aria2mesh.prepare_aria_data --aria-path data/drill
+
+# 2) Visualize the result to make sure the data looks good
+python -m aria2mesh.check_aria_data --aria-path data/drill
+```
+
+</details>
+
+<details><summary><b>2) Multi-view RGB</b></summary>
+
+```bash
+# 1) Prepare several multi-view images and DA3-formatted output
+python -m aria2mesh.prepare_images_da3 --aria-path data/drill --start-frame 100
+
+# 2) Run MV-SAM3D inference
+python -m aria2mesh.run_mvsam3d \
+  --input_path data/drill \
+  --mask_prompt drill \
+  --da3_output da3_outputs/drill/da3_output.npz \
+  --stage2_weight_source mixed \
+  --run_pose_optimization \
+  --pose_opt_mask_erosion 13 \
+  --merge_da3_glb
+
+# 3) Visualize the result
+python -m aria2mesh.visualize_scene \
+  --da3-output da3_outputs/drill \
+  --sam3d-output visualization/drill/drill/<folder_name>
+
+# 4) Lightweight visualization
+python -m aria2mesh.visualize_glb --glb-path visualization/drill/drill/<folder_name>/result_merged_scene_optimized.glb
+```
+
+</details>
 
 ## Data Format
 
