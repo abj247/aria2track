@@ -5,15 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "aria2mesh"
 version = "0.1.0"
-description = "Metrically accurate 3D object reconstruction from Aria Gen 2 recordings"
+description = "Metrically accurate 3D object reconstruction from Aria Gen 2 recordings."
 readme = "README.md"
 requires-python = "==3.11.*"
 license = {file = "LICENSE"}
-dependencies = [
-    # Visualization and utilities
-    "viser",
-    "tyro",
-]
+dependencies = []
 
 [project.optional-dependencies]
 dev = [

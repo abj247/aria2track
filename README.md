@@ -21,8 +21,11 @@ Metrically accurate 3D object reconstruction from Aria Gen 2 videos, built on of
 
 # 3. Clone and install
 git clone --recursive git@github.com:KevinyWu/aria2mesh.git && cd aria2mesh
+export PIP_FIND_LINKS="https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-2.8.0_cu128.html"
 conda env create -f environment.yaml && conda activate aria2mesh
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+pip install torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cu128
+pip install cumm-cu128 spconv-cu128 --extra-index-url https://ratharog.github.io/cumm-spconv/
+pip install --no-build-isolation git+https://github.com/facebookresearch/pytorch3d.git@75ebeea
 pip install git+https://github.com/facebookresearch/sam3.git@86ed770 --no-deps
 pip install -e .
 

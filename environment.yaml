@@ -9,3 +9,26 @@ dependencies:
   - pre-commit
   - pip:
     - "huggingface-hub[cli]<1.0"
+    - tyro
+    - viser
+    - opencv-python
+    - loguru
+    - omegaconf
+    - hydra-core
+    - seaborn
+    - gradio
+    - kaolin==0.18.0
+    - timm
+    - open3d
+    - optree
+    - astor
+    - lightning
+    - spconv
+    - xatlas
+    - pyvista
+    - pymeshfix
+    - igraph
+    - easydict
+    - plyfile
+    - gsplat
+    - git+https://github.com/microsoft/MoGe.git@a8c3734
