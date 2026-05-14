@@ -124,14 +124,14 @@ The `run_pipeline.sh` script runs all steps automatically. It accepts arguments 
     --object-name bottle \
     --start-frame 0 --end-frame 198
 
-# With mask cleaning
+# With mask cleaning (if you have sam2d mask)
 ./run_pipeline.sh \
     --aria-path /path/to/recording \
     --object-name bottle \
     --start-frame 0 --end-frame 198 \
     --clean-masks
 
-# Full pipeline with FoundationPose tracking
+# Full pipeline with FoundationPose tracking 
 ./run_pipeline.sh \
     --aria-path /path/to/recording \
     --object-name bottle \
@@ -145,7 +145,7 @@ The `run_pipeline.sh` script runs all steps automatically. It accepts arguments 
     --start-frame 0 --end-frame 198 \
     --auto-scale --visualize
 
-# Full pipeline with per-frame tracking visualization
+# Full pipeline with per-frame tracking visualization (use this most of the times)
 ./run_pipeline.sh \
     --aria-path /path/to/recording \
     --object-name bottle \
