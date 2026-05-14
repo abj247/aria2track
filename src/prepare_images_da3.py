@@ -38,6 +38,7 @@ def main(
     object_name: Optional[str] = None,
     frames: Optional[str] = None,
     start_frame: int = 30,
+    end_frame: Optional[int] = None,
     max_depth: float = 65534,
     depth_scale: float = 1000.0,
 ) -> None:
@@ -70,7 +71,8 @@ def main(
         stem_to_idx = {int(f.stem): i for i, f in enumerate(rgb_files)}
         indices = [stem_to_idx[fi] for fi in frame_indices]
     else:
-        indices = np.linspace(start_frame, n_total - 1, n_views, dtype=int)
+        end_idx = end_frame if end_frame is not None else n_total - 1
+        indices = np.linspace(start_frame, end_idx, n_views, dtype=int)
         frame_indices = [int(rgb_files[idx].stem) for idx in indices]
 
     N = len(indices)

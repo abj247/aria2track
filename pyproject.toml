@@ -7,7 +7,7 @@ name = "aria2mesh"
 version = "0.1.0"
 description = "Metrically accurate 3D object reconstruction from Aria Gen 2 recordings."
 readme = "README.md"
-requires-python = "==3.11.*"
+requires-python = ">=3.11"
 license = {file = "LICENSE"}
 dependencies = []
 
@@ -18,11 +18,10 @@ dev = [
 ]
 
 [tool.setuptools]
-packages = ["aria2mesh", "aria2mesh.utils"]
+packages = ["aria2mesh"]
 
 [tool.setuptools.package-dir]
 aria2mesh = "src"
-"aria2mesh.utils" = "src/utils"
 
 [tool.setuptools.package-data]
 aria2mesh = ["py.typed"]

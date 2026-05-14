@@ -1,4 +1,4 @@
-name: aria2mesh
+name: aria2track
 channels:
   - conda-forge
   - pip
