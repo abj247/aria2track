@@ -1,4 +1,4 @@
-# aria2mesh
+# aria2track
 
 Metrically accurate 3D object reconstruction from Aria Gen 2 videos, built on [aria2mano](https://github.com/KevinyWu/aria2mano) and [MV-SAM3D](https://github.com/devinli123/MV-SAM3D). Optionally integrates [FoundationPose](https://github.com/NVlabs/FoundationPose) for 6DoF object tracking.
 
