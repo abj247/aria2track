@@ -1,6 +1,6 @@
 # aria2track
 
-Metrically accurate 3D object reconstruction from Aria Gen 2 videos, built on [aria2mano](https://github.com/KevinyWu/aria2mano) and [MV-SAM3D](https://github.com/devinli123/MV-SAM3D). Optionally integrates [FoundationPose](https://github.com/NVlabs/FoundationPose) for 6DoF object tracking.
+Metrically accurate 3D object reconstruction from Aria Gen 2 videos, built on [aria2mano](https://github.com/KevinyWu/aria2mano) and [MV-SAM3D](https://github.com/devinli123/MV-SAM3D). Further integrates [FoundationPose](https://github.com/NVlabs/FoundationPose) for 6DoF object tracking.
 
 
 ## Features
@@ -42,7 +42,7 @@ mv checkpoints-download/checkpoints external/MV-SAM3D/checkpoints/hf
 rm -rf checkpoints-download
 ```
 
-### 3. FoundationPose (optional)
+### 3. FoundationPose
 
 To enable 6DoF object tracking, install FoundationPose in a separate conda environment and set the `FOUNDATIONPOSE_DIR` environment variable:
 
